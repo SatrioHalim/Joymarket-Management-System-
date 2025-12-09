@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import database.DatabaseConnector;
+import model.Customer;
 import model.User;
 
 public class UserRepository {
@@ -17,6 +18,7 @@ public class UserRepository {
 	public User loginUser(String email, String password) {
 		String query = "SELECT * FROM users WHERE email = ? AND password = ?";
 		try {
+			connect.getConnection().setAutoCommit(false);
 			PreparedStatement ps = connect.getConnection().prepareStatement(query);
 			ps.setString(1, email);
 			ps.setString(2, password);
@@ -32,20 +34,60 @@ public class UserRepository {
 		}
 		return null;
 	}
-//	public boolean registerUser(User user) {
-//		String query = "INSERT INTO users(email,fullname,password) VALUES(?,?,?)";
-//		
-//		try {
-//			PreparedStatement ps = connect.getConnection().prepareStatement(query);
-//			ps.setString(1, user.getEmail());
-//			ps.setString(2, user.getUsername());
-//			ps.setString(3, user.getPassword());
-//			
-//			return ps.executeUpdate() > 0;
-//		} catch (SQLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		return false;
-//	}
+	public boolean registerCustomer(String fullname, String email, String password, String phone
+			, String address) {
+		String userQuery = "INSERT INTO users(fullname,email,password,phone,address,role) VALUES(?,?,?,?,?,?)";
+		String customerQuery = "INSERT INTO customer(userid,balance) VALUES(?,?)";
+
+		try {
+			connect.getConnection().setAutoCommit(false);
+			// Query buat masukin ke tabel users			
+			PreparedStatement psUser = connect.getConnection().prepareStatement(userQuery,PreparedStatement.RETURN_GENERATED_KEYS);
+			psUser.setString(1, fullname);
+			psUser.setString(2, email);
+			psUser.setString(3, password);
+			psUser.setString(4, phone);
+			psUser.setString(5, address);
+			psUser.setString(6, "customer");
+			psUser.executeUpdate();
+			
+			// buat ambil id di users yg baru terus jadi reference ke table customer
+			int userId = 0;
+			ResultSet generatedKeys = psUser.getGeneratedKeys();
+			if (generatedKeys.next()) {
+	            userId = generatedKeys.getInt(1);
+	        }
+			
+			// Query Buat masukin ke table customer
+			PreparedStatement psCustomer = connect.getConnection().prepareStatement(customerQuery);
+			psCustomer.setInt(1, userId);
+			psCustomer.setDouble(2, 0); // default saldonya bikin 0 aja
+			psCustomer.executeUpdate();
+			
+			connect.getConnection().commit();
+		
+			return true;
+			
+		} catch (SQLException e) {
+	        try {
+	            // Rollback jika ada error
+	            if (connect != null) {
+	                connect.getConnection().rollback();
+	            }
+	        } catch (SQLException rollbackEx) {
+	            rollbackEx.printStackTrace();
+	        }
+	        e.printStackTrace();
+	        return false; // Return false jika gagal
+	        
+	    } finally {
+	        try {
+	            if (connect != null) {
+	                connect.getConnection().setAutoCommit(true);
+	            }
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	    }
+	}
 }

@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import database.DatabaseConnector;
-import model.Customer;
 import model.User;
 
 public class UserRepository {
@@ -26,7 +25,7 @@ public class UserRepository {
 			if(rs.next()) {
 				return new User(rs.getInt("id"), rs.getString("fullname"),rs.getString("email"),
 						rs.getString("password"), rs.getString("phone"), rs.getString("address")
-						, rs.getString("role"));
+						, rs.getString("role"), rs.getString("gender"));
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -35,8 +34,8 @@ public class UserRepository {
 		return null;
 	}
 	public boolean registerCustomer(String fullname, String email, String password, String phone
-			, String address) {
-		String userQuery = "INSERT INTO users(fullname,email,password,phone,address,role) VALUES(?,?,?,?,?,?)";
+			, String address, String gender) {
+		String userQuery = "INSERT INTO users(fullname,email,password,phone,address,role,gender) VALUES(?,?,?,?,?,?,?)";
 		String customerQuery = "INSERT INTO customer(userid,balance) VALUES(?,?)";
 
 		try {
@@ -49,6 +48,7 @@ public class UserRepository {
 			psUser.setString(4, phone);
 			psUser.setString(5, address);
 			psUser.setString(6, "customer");
+			psUser.setString(7, gender);
 			psUser.executeUpdate();
 			
 			// buat ambil id di users yg baru terus jadi reference ke table customer

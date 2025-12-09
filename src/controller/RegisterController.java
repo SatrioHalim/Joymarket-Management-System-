@@ -1,8 +1,6 @@
 package controller;
 
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Label;
 import repository.UserRepository;
 import view.RegisterView;
 
@@ -23,8 +21,10 @@ public class RegisterController {
 		String fullname = view.getFullnameTf().getText().trim();
 		String email = view.getEmailTf().getText().trim();
 		String password = view.getPasswordTf().getText().trim();
+		String confirmPassword = view.getConfirmPasswordTf().getText().trim();
 		String phone = view.getPhoneTf().getText().trim();
 		String address = view.getAddressTf().getText().trim();
+		String gender = view.getSelectedGender();
 		
 		boolean inputValidation = true;
 	
@@ -33,10 +33,12 @@ public class RegisterController {
         	Alert alert = new Alert(Alert.AlertType.ERROR, "Fullname can't be empty!");
 			alert.show();
         	inputValidation = false;
+        	this.view.getFullnameTf().clear();
         } else if (fullname.length() < 3) {
         	Alert alert = new Alert(Alert.AlertType.ERROR, "Fullname at least 3 characters!");
 			alert.show();
         	inputValidation = false;
+        	this.view.getFullnameTf().clear();
         }
         
         // Validasi Email
@@ -44,10 +46,11 @@ public class RegisterController {
         	Alert alert = new Alert(Alert.AlertType.ERROR, "Email can't be empty!");
 			alert.show();
         	inputValidation = false;
-        } else if (!isValidEmail(email)) {
-        	Alert alert = new Alert(Alert.AlertType.ERROR, "Invalid email Format!");
+        } else if (!email.endsWith("@gmail.com")) {
+        	Alert alert = new Alert(Alert.AlertType.ERROR, "Email must end with @gmail.com!");
 			alert.show();
         	inputValidation = false;
+        	this.view.getEmailTf().clear();
         }
         
         // Validasi Password
@@ -59,7 +62,16 @@ public class RegisterController {
         	Alert alert = new Alert(Alert.AlertType.ERROR, "Password at least 6 characters!");
 			alert.show();
         	inputValidation = false;
+        	this.view.getPasswordTf().clear();
         }
+        
+        // Validasi confirm password
+        if (!confirmPassword.equals(password)) {
+        	Alert alert = new Alert(Alert.AlertType.ERROR, "Confirm Password doesn't match!");
+			alert.show();
+        	inputValidation = false;
+        	this.view.getConfirmPasswordTf().clear();
+		}
         
         // Validasi Phone
         if (phone.isEmpty()) {
@@ -70,10 +82,12 @@ public class RegisterController {
         	Alert alert = new Alert(Alert.AlertType.ERROR, "Phone must contain number!");
 			alert.show();
         	inputValidation = false;
+        	this.view.getPhoneTf().clear();
         } else if (phone.length() < 10 || phone.length() > 15) {
         	Alert alert = new Alert(Alert.AlertType.ERROR, "Phone number must be 10-15 digits!");
 			alert.show();
         	inputValidation = false;
+        	this.view.getPhoneTf().clear();
         }
         
         // Validasi Address
@@ -84,7 +98,7 @@ public class RegisterController {
         } 
 
 		if (inputValidation) {
-			boolean registerStatus = userRepository.registerCustomer(fullname, email, password, phone, address);
+			boolean registerStatus = userRepository.registerCustomer(fullname, email, password, phone, address,gender);
 			if(registerStatus) {
 				Alert alert = new Alert(Alert.AlertType.INFORMATION, "Success!");
 				alert.show();
@@ -102,9 +116,10 @@ public class RegisterController {
 		
 	}
     
-    private boolean isValidEmail(String email) {
-        String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
-        return email.matches(emailRegex);
-    }
+	// Regex iseng2 buat ngecek format email
+//    private boolean isValidEmail(String email) {
+//        String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+//        return email.matches(emailRegex);
+//    }
 	
 }

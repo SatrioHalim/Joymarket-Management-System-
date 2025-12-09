@@ -1,6 +1,5 @@
 package controller;
 
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import model.User;
 import repository.UserRepository;
@@ -24,9 +23,16 @@ public class LoginController {
 		
 		User user = userRepository.loginUser(email, password);
 		if(user != null) {
-			Alert alert = new Alert(Alert.AlertType.INFORMATION, "Success!");
-			alert.show();
-			SceneManager.changeToRegister();
+			if (user.getRole().equals("customer")) {
+				Alert alert = new Alert(Alert.AlertType.INFORMATION, "Success login as customer!");
+				alert.show();
+			} else if (user.getRole().equals("courier")) {
+				Alert alert = new Alert(Alert.AlertType.INFORMATION, "Success login as courier!");
+				alert.show();
+			} else if(user.getRole().equals("admin")) {
+				Alert alert = new Alert(Alert.AlertType.INFORMATION, "Success login as admin!");
+				alert.show();
+			}
 		} else {
 			Alert alert = new Alert(Alert.AlertType.ERROR, "Invalid credentials!");
 			alert.show();

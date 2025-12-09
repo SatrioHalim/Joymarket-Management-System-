@@ -8,10 +8,12 @@ public class User {
 	private String phone;
 	private String address;
 	private String role;
+	private String gender;
 	
 	
 	
-	public User(int id, String fullName, String email, String password, String phone, String address, String role) {
+	public User(int id, String fullName, String email, String password, String phone, 
+			String address, String role,String gender) {
 		super();
 		this.id = id;
 		this.fullName = fullName;
@@ -20,6 +22,7 @@ public class User {
 		this.phone = phone;
 		this.address = address;
 		this.role = role;
+		this.gender = gender;
 	}
 	
 	public int getId() {
@@ -63,6 +66,14 @@ public class User {
 	}
 	public void setRole(String role) {
 		this.role = role;
+	}
+
+	public String getGender() {
+		return gender;
+	}
+
+	public void setGender(String gender) {
+		this.gender = gender;
 	}
 	
 	

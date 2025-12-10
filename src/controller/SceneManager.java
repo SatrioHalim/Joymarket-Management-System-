@@ -3,6 +3,7 @@ package controller;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import repository.UserRepository;
+import view.CustomerDashboardView;
 import view.LoginView;
 import view.RegisterView;
 
@@ -24,6 +25,12 @@ private static Stage primaryStage;
 		UserRepository userRepo = new UserRepository();
 		RegisterView view = new RegisterView();
 		RegisterController controller = new RegisterController(view, userRepo);
+		Scene scene = new Scene(view,900,700);
+		primaryStage.setScene(scene);
+	}
+	public static void changeToCustomerDashboard() {
+		CustomerDashboardView view = new CustomerDashboardView();
+		CustomerDashboardController controller = new CustomerDashboardController(view);
 		Scene scene = new Scene(view,900,700);
 		primaryStage.setScene(scene);
 	}

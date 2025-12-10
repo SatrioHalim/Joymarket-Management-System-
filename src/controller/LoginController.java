@@ -26,6 +26,7 @@ public class LoginController {
 			if (user.getRole().equals("customer")) {
 				Alert alert = new Alert(Alert.AlertType.INFORMATION, "Success login as customer!");
 				alert.show();
+				SceneManager.changeToCustomerDashboard();
 			} else if (user.getRole().equals("courier")) {
 				Alert alert = new Alert(Alert.AlertType.INFORMATION, "Success login as courier!");
 				alert.show();

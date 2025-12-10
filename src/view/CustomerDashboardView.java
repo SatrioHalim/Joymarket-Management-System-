@@ -12,6 +12,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import model.Customer;
 
 public class CustomerDashboardView extends BorderPane{
 	private Button viewProductsBtn;
@@ -21,9 +22,11 @@ public class CustomerDashboardView extends BorderPane{
     private Label welcomeLabel;
     private Label balanceLabel;
     private StackPane contentArea;
+    private Customer customer;
     
-    public CustomerDashboardView() {
+    public CustomerDashboardView(Customer customer) {
         // Left Sidebar Navigation - PUTIH
+    	this.customer = customer;
         VBox sidebar = createSidebar();
         
         // Top Header - ABU-ABU MUDA
@@ -56,7 +59,7 @@ public class CustomerDashboardView extends BorderPane{
         VBox userInfo = new VBox(5);
         userInfo.setPadding(new Insets(0, 0, 20, 0));
         
-        Label userTitle = new Label("CUSTOMER");
+        Label userTitle = new Label(customer.getFullName());
         userTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
         userTitle.setStyle("-fx-text-fill: #333333;");
         
@@ -93,7 +96,7 @@ public class CustomerDashboardView extends BorderPane{
         Label balanceTitle = new Label("Balance:");
         balanceTitle.setStyle("-fx-text-fill: #cccccc; -fx-font-size: 14px;");
         
-        balanceLabel = new Label("$0.00");
+        balanceLabel = new Label(String.valueOf(customer.getBalance()));
         balanceLabel.setFont(Font.font("System", FontWeight.BOLD, 18));
         balanceLabel.setStyle("-fx-text-fill: #ffffff;");
         
@@ -121,6 +124,31 @@ public class CustomerDashboardView extends BorderPane{
             "-fx-border-radius: 0px; " +
             "-fx-padding: 0 0 0 15;"
         );
+        btn.setOnMouseEntered(e -> {
+            btn.setStyle(
+                "-fx-background-color: #f5f5f5; " + 
+                "-fx-text-fill: #333333; " +
+                "-fx-font-size: 14px; " +
+                "-fx-border-color: #d0d0d0; " +  
+                "-fx-border-width: 1px; " +
+                "-fx-background-radius: 0px; " +
+                "-fx-border-radius: 0px; " +
+                "-fx-padding: 0 0 0 15;"
+            );
+        });
+        
+        btn.setOnMouseExited(e -> {
+            btn.setStyle(
+                "-fx-background-color: #ffffff; " +  
+                "-fx-text-fill: #333333; " +
+                "-fx-font-size: 14px; " +
+                "-fx-border-color: #e0e0e0; " +
+                "-fx-border-width: 1px; " +
+                "-fx-background-radius: 0px; " +
+                "-fx-border-radius: 0px; " +
+                "-fx-padding: 0 0 0 15;"
+            );
+        });
         
         return btn;
     }

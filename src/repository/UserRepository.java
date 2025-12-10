@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import database.DatabaseConnector;
+import model.Customer;
 import model.User;
 
 public class UserRepository {
@@ -89,5 +90,38 @@ public class UserRepository {
 	            e.printStackTrace();
 	        }
 	    }
+	}
+	
+	public Customer getCustomer(User user) {
+		String query = "SELECT "
+				+ " u.id as userid,"
+				+ " u.fullname,"
+				+ " u.email,"
+				+ " u.password,"
+				+ " u.phone,"
+				+ " u.address,"
+				+ " u.role,"
+				+ " u.gender,"
+				+ " c.balance"
+				+ " FROM users u"
+				+ " JOIN customer c ON u.id = c.userid"
+				+ " WHERE u.role = ? AND u.email = ?;";
+		try {
+			connect.getConnection().setAutoCommit(false);
+			PreparedStatement ps = connect.getConnection().prepareStatement(query);
+			ps.setString(1, user.getRole());
+			ps.setString(2, user.getEmail());
+			ResultSet rs = ps.executeQuery();
+			if(rs.next()) {
+				return new Customer(rs.getInt("userid"), rs.getString("fullname"),rs.getString("email"),
+						rs.getString("password"), rs.getString("phone"), rs.getString("address")
+						, rs.getString("role"), rs.getString("gender"),rs.getDouble("balance"));
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+		
 	}
 }

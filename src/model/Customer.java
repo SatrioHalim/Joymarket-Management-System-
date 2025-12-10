@@ -1,15 +1,15 @@
 package model;
 
 public class Customer extends User{
-	private int balance;
+	private double balance;
 
 	public Customer(int id, String fullName, String email, String password, String phone, String address, String role,
-			String gender,int balance) {
+			String gender,double balance) {
 		super(id, fullName, email, password, phone, address, role,gender);
 		this.balance = balance;
 	}
 
-	public int getBalance() {
+	public double getBalance() {
 		return balance;
 	}
 

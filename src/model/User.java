@@ -10,8 +10,6 @@ public class User {
 	private String role;
 	private String gender;
 	
-	
-	
 	public User(int id, String fullName, String email, String password, String phone, 
 			String address, String role,String gender) {
 		super();

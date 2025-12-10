@@ -1,6 +1,7 @@
 package controller;
 
 import javafx.scene.control.Alert;
+import model.Customer;
 import model.User;
 import repository.UserRepository;
 import view.LoginView;
@@ -26,7 +27,8 @@ public class LoginController {
 			if (user.getRole().equals("customer")) {
 				Alert alert = new Alert(Alert.AlertType.INFORMATION, "Success login as customer!");
 				alert.show();
-				SceneManager.changeToCustomerDashboard();
+				Customer customer = userRepository.getCustomer(user);
+				SceneManager.changeToCustomerDashboard(customer);
 			} else if (user.getRole().equals("courier")) {
 				Alert alert = new Alert(Alert.AlertType.INFORMATION, "Success login as courier!");
 				alert.show();

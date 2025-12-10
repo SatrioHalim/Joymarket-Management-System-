@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import model.Customer;
 import repository.UserRepository;
 import view.CartView;
 import view.CheckoutView;
@@ -17,10 +18,12 @@ import view.ProductListView;
 public class CustomerDashboardController {
 	private CustomerDashboardView view;
     private UserRepository userRepo;
+    private Customer customer;
     
-    public CustomerDashboardController(CustomerDashboardView view) {
+    public CustomerDashboardController(CustomerDashboardView view, Customer customer) {
         this.view = view;
         this.userRepo = new UserRepository();
+        this.customer = customer;
         
         setupEventHandlers();
         loadDefaultView();
@@ -35,7 +38,7 @@ public class CustomerDashboardController {
         
         // Checkout Button - Show Checkout
         view.getCheckoutBtn().setOnAction(e -> {
-            showAlert("Info", "Checkout feature will be available after adding items to cart", AlertType.INFORMATION);
+            showCheckoutView();
         });
         
         // Logout Button - Go back to Login
@@ -49,7 +52,7 @@ public class CustomerDashboardController {
         defaultContent.setAlignment(Pos.CENTER);
         defaultContent.setPadding(new Insets(50));
         
-        Label welcomeMsg = new Label("Welcome to Customer Dashboard");
+        Label welcomeMsg = new Label("Welcome " + customer.getFullName());
         welcomeMsg.setFont(Font.font("System", FontWeight.BOLD, 24));
         welcomeMsg.setStyle("-fx-text-fill: #333333;");
         

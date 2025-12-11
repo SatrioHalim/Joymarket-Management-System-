@@ -9,6 +9,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import model.Customer;
+import repository.ProductRepository;
 import repository.UserRepository;
 import view.CartView;
 import view.CheckoutView;
@@ -19,11 +20,13 @@ public class CustomerDashboardController {
 	private CustomerDashboardView view;
     private UserRepository userRepo;
     private Customer customer;
+    private ProductRepository productRepo;
     
     public CustomerDashboardController(CustomerDashboardView view, Customer customer) {
         this.view = view;
         this.userRepo = new UserRepository();
         this.customer = customer;
+        this.productRepo = new ProductRepository();
         
         setupEventHandlers();
         loadDefaultView();
@@ -83,8 +86,7 @@ public class CustomerDashboardController {
         try {
             ProductListView productListView = new ProductListView();
             // Setup controller for product list
-            ProductListController productListController = new ProductListController(productListView, userRepo);
-            
+            ProductListController productListController = new ProductListController(productListView, productRepo);
             // Handle back button
             productListView.getBackBtn().setOnAction(e -> loadDefaultView());
             

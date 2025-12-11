@@ -96,7 +96,7 @@ public class CustomerDashboardView extends BorderPane{
         Label balanceTitle = new Label("Balance:");
         balanceTitle.setStyle("-fx-text-fill: #cccccc; -fx-font-size: 14px;");
         
-        balanceLabel = new Label(String.valueOf(customer.getBalance()));
+        balanceLabel = new Label(String.format("$%.2f", customer.getBalance()));
         balanceLabel.setFont(Font.font("System", FontWeight.BOLD, 18));
         balanceLabel.setStyle("-fx-text-fill: #ffffff;");
         
@@ -193,6 +193,9 @@ public class CustomerDashboardView extends BorderPane{
         defaultContent.getChildren().addAll(welcomeMsg, instruction, separator, infoBox);
         
         contentArea.getChildren().add(defaultContent);
+    }
+    public void updateBalance(double newBalance) {
+        balanceLabel.setText(String.format("$%.2f", newBalance));
     }
     
     // Getters

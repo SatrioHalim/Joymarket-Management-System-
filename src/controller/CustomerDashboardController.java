@@ -9,6 +9,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import model.Customer;
+import repository.CartRepository;
 import repository.ProductRepository;
 import repository.UserRepository;
 import view.CartView;
@@ -17,37 +18,31 @@ import view.CustomerDashboardView;
 import view.ProductListView;
 
 public class CustomerDashboardController {
-	private CustomerDashboardView view;
+    private CustomerDashboardView view;
     private UserRepository userRepo;
     private Customer customer;
     private ProductRepository productRepo;
+    private CartRepository cartRepo;
+    private double currentBalance;
     
     public CustomerDashboardController(CustomerDashboardView view, Customer customer) {
         this.view = view;
         this.userRepo = new UserRepository();
         this.customer = customer;
         this.productRepo = new ProductRepository();
+        this.currentBalance = customer.getBalance();
+        this.cartRepo = new CartRepository();
         
         setupEventHandlers();
         loadDefaultView();
+        updateBalanceDisplay();
     }
     
     private void setupEventHandlers() {
-        // Products Button - Show Product List
         view.getViewProductsBtn().setOnAction(e -> showProductListView());
-        
-        // Cart Button - Show Cart
         view.getViewCartBtn().setOnAction(e -> showCartView());
-        
-        // Checkout Button - Show Checkout
-        view.getCheckoutBtn().setOnAction(e -> {
-            showCheckoutView();
-        });
-        
-        // Logout Button - Go back to Login
-        view.getLogoutBtn().setOnAction(e -> {
-            SceneManager.changeToLogin();
-        });
+        view.getCheckoutBtn().setOnAction(e -> showCheckoutView());
+        view.getLogoutBtn().setOnAction(e -> handleLogout());
     }
     
     private void loadDefaultView() {
@@ -62,32 +57,39 @@ public class CustomerDashboardController {
         Label instruction = new Label("Select a menu from the left sidebar to get started");
         instruction.setStyle("-fx-text-fill: #666666; -fx-font-size: 14px;");
         
-        // Stats boxes
         VBox statsBox = new VBox(15);
         statsBox.setAlignment(Pos.CENTER);
         statsBox.setMaxWidth(400);
         
-        // Product stat
-        VBox productStat = createStatBox("Available Products", "0");
-        // Cart stat
-        VBox cartStat = createStatBox("Items in Cart", "0");
-        // Balance stat
-        VBox balanceStat = createStatBox("Your Balance", "$0.00");
+        // Stats dengan data real
+        VBox productStat = createStatBox("Available Products", 
+            String.valueOf(getAvailableProductCount()));
+        VBox cartStat = createStatBox("Items in Cart", "0"); // TODO: Get from cart
+        VBox balanceStat = createStatBox("Your Balance", 
+            String.format("$%.2f", currentBalance));
         
         statsBox.getChildren().addAll(productStat, cartStat, balanceStat);
-        
         defaultContent.getChildren().addAll(welcomeMsg, instruction, statsBox);
         
         view.getContentArea().getChildren().clear();
         view.getContentArea().getChildren().add(defaultContent);
     }
     
+    private int getAvailableProductCount() {
+        try {
+            return productRepo.getAllProducts().size();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+    
     private void showProductListView() {
         try {
             ProductListView productListView = new ProductListView();
-            // Setup controller for product list
-            ProductListController productListController = new ProductListController(productListView, productRepo);
-            // Handle back button
+            ProductListController productListController = new ProductListController(productListView, 
+            		productRepo, cartRepo, customer);
+            
+            
             productListView.getBackBtn().setOnAction(e -> loadDefaultView());
             
             view.getContentArea().getChildren().clear();
@@ -100,16 +102,18 @@ public class CustomerDashboardController {
     }
     
     private void showCartView() {
-        try {
+    	try {
             CartView cartView = new CartView();
-            // Setup controller for cart
-            CartController cartController = new CartController(cartView, userRepo);
+            CartController cartController = new CartController(cartView, cartRepo, customer); // UPDATED
             
-            // Handle back button
+            // Load cart items
+            cartController.loadCartItems();
+            
             cartView.getBackBtn().setOnAction(e -> loadDefaultView());
-            
-            // Handle checkout button
-            cartView.getCheckoutBtn().setOnAction(e -> showCheckoutView());
+            cartView.getCheckoutBtn().setOnAction(e -> {
+                double totalAmount = cartController.getTotalAmount();
+                showCheckoutView(totalAmount);
+            });
             
             view.getContentArea().getChildren().clear();
             view.getContentArea().getChildren().add(cartView);
@@ -120,14 +124,25 @@ public class CustomerDashboardController {
         }
     }
     
+    
     private void showCheckoutView() {
+        showCheckoutView(0.0); // Default jika dipanggil langsung
+    }
+    
+    public void showCheckoutView(double totalAmount) {
         try {
-            CheckoutView checkoutView = new CheckoutView();
-            // Setup controller for checkout
+            CheckoutView checkoutView = new CheckoutView(totalAmount, currentBalance);
             CheckoutController checkoutController = new CheckoutController(checkoutView, userRepo);
             
-            // Handle back button
+            // Pass data yang diperlukan
+            checkoutController.setCustomer(customer);
+            checkoutController.setDashboardController(this);
+            checkoutController.setTotalAmount(totalAmount);
+            
             checkoutView.getBackBtn().setOnAction(e -> showCartView());
+            checkoutView.getPlaceOrderBtn().setOnAction(e -> {
+                handleCheckout(checkoutController, totalAmount);
+            });
             
             view.getContentArea().getChildren().clear();
             view.getContentArea().getChildren().add(checkoutView);
@@ -136,6 +151,73 @@ public class CustomerDashboardController {
             showAlert("Error", "Failed to load checkout: " + e.getMessage(), AlertType.ERROR);
             e.printStackTrace();
         }
+    }
+    
+    private void handleCheckout(CheckoutController checkoutController, double totalAmount) {
+        try {
+            // Validasi saldo cukup
+            if (totalAmount > currentBalance) {
+                showAlert("Error", "Insufficient balance!", AlertType.ERROR);
+                return;
+            }
+            
+            // Proses checkout
+            boolean success = checkoutController.processCheckout();
+            
+            if (success) {
+                // Update balance
+                double newBalance = currentBalance - totalAmount;
+                updateCustomerBalance(newBalance);
+                
+                // Show success message
+                showAlert("Success", 
+                    "Checkout successful!\n" +
+                    "Total: $" + String.format("%.2f", totalAmount) + "\n" +
+                    "New Balance: $" + String.format("%.2f", newBalance),
+                    AlertType.INFORMATION);
+                
+                // Kembali ke default view
+                loadDefaultView();
+            }
+            
+        } catch (Exception e) {
+            showAlert("Error", "Checkout failed: " + e.getMessage(), AlertType.ERROR);
+            e.printStackTrace();
+        }
+    }
+    
+    private void handleLogout() {
+        // TODO: Save any pending changes
+        SceneManager.changeToLogin();
+    }
+    
+    // Method untuk update balance dari controller lain
+    public void updateCustomerBalance(double newBalance) {
+        try {
+            this.currentBalance = newBalance;
+            this.customer.setBalance(newBalance);
+            
+            // Update di database
+            userRepo.updateCustomerBalance(customer.getId(), newBalance);
+            
+            // Update display
+            updateBalanceDisplay();
+            
+        } catch (Exception e) {
+            showAlert("Error", "Failed to update balance: " + e.getMessage(), AlertType.ERROR);
+        }
+    }
+    
+    private void updateBalanceDisplay() {
+        view.getBalanceLabel().setText(String.format("$%.2f", currentBalance));
+    }
+    
+    public double getCurrentBalance() {
+        return currentBalance;
+    }
+    
+    public Customer getCustomer() {
+        return customer;
     }
     
     private VBox createStatBox(String title, String value) {
@@ -162,11 +244,4 @@ public class CustomerDashboardController {
         alert.setContentText(message);
         alert.showAndWait();
     }
-    
-    // Method to update user info (called from SceneManager)
-    public void updateUserInfo(String fullname, double balance) {
-        view.getWelcomeLabel().setText("Welcome, " + fullname);
-        view.getBalanceLabel().setText(String.format("$%.2f", balance));
-    }
-	
 }

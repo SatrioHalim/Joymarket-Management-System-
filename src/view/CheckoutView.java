@@ -31,7 +31,7 @@ public class CheckoutView extends VBox {
     private TextField phoneField;
     private TextField emailField;
     
-    public CheckoutView() {
+    public CheckoutView(double totalAmount, double currentBalance) {
         this.setSpacing(20);
         this.setPadding(new Insets(25));
         this.setStyle("-fx-background-color: #ffffff;");

@@ -1,5 +1,6 @@
 package repository;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -124,4 +125,21 @@ public class UserRepository {
 		return null;
 		
 	}
+	 public boolean updateCustomerBalance(int customerId, double newBalance) {
+	        String query = "UPDATE customer SET balance = ? WHERE userid = ?";
+	        
+	        try (Connection conn = connect.getConnection();
+	             PreparedStatement stmt = conn.prepareStatement(query)) {
+	            
+	            stmt.setDouble(1, newBalance);
+	            stmt.setInt(2, customerId);
+	            
+	            int rowsAffected = stmt.executeUpdate();
+	            return rowsAffected > 0;
+	            
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            return false;
+	        }
+	    }
 }

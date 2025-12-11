@@ -1,12 +1,16 @@
 package controller;
 
 import javafx.scene.control.Alert;
+import model.Customer;
 import repository.UserRepository;
 import view.CheckoutView;
 
 public class CheckoutController {
 	private CheckoutView view;
 	private UserRepository userRepo;
+	private Customer customer;
+	private CustomerDashboardController dashboardController;
+	private double totalAmount;
 
 	public CheckoutController(CheckoutView view, UserRepository userRepo) {
 		this.view = view;
@@ -92,6 +96,47 @@ public class CheckoutController {
 			}
 		});
 	}
+	public boolean processCheckout() {
+        try {
+            // Validasi
+            if (customer == null) {
+                showError("Customer data not found");
+                return false;
+            }
+            
+            if (totalAmount <= 0) {
+                showError("Invalid total amount");
+                return false;
+            }
+            
+            if (totalAmount > customer.getBalance()) {
+                showError("Insufficient balance");
+                return false;
+            }
+            
+            // TODO: Implement checkout logic
+            // 1. Kurangi stock produk
+            // 2. Simpan transaksi
+            // 3. Update balance (dilakukan di dashboard controller)
+            
+            return true;
+            
+        } catch (Exception e) {
+            showError("Checkout failed: " + e.getMessage());
+            return false;
+        }
+    }
+	public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
+    
+    public void setDashboardController(CustomerDashboardController controller) {
+        this.dashboardController = controller;
+    }
+    
+    public void setTotalAmount(double amount) {
+        this.totalAmount = amount;
+    }
 
 	private void showAlert(String title, String message, Alert.AlertType type) {
 		Alert alert = new Alert(type);

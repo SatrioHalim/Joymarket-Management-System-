@@ -6,6 +6,12 @@ public class CartItem {
 	private int productId;
 	private int count;
 	
+	// tambahin buat bantu List method pas nge-get
+	private String productName;
+    private double productPrice;
+    private int productStock;
+	
+	public CartItem() {}
 	public CartItem(int id, int customerId, int productId, int count) {
 		super();
 		this.id = id;
@@ -44,6 +50,27 @@ public class CartItem {
 
 	public void setCount(int count) {
 		this.count = count;
+	}
+	public double getSubtotal() {
+        return productPrice * count;
+    }
+	public String getProductName() {
+		return productName;
+	}
+	public void setProductName(String productName) {
+		this.productName = productName;
+	}
+	public double getProductPrice() {
+		return productPrice;
+	}
+	public void setProductPrice(double productPrice) {
+		this.productPrice = productPrice;
+	}
+	public int getProductStock() {
+		return productStock;
+	}
+	public void setProductStock(int productStock) {
+		this.productStock = productStock;
 	}
 	
 	

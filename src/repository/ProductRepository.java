@@ -91,7 +91,7 @@ public class ProductRepository {
         return null;
     }
 	public boolean updateProductStock(int productId, int newStock) {
-        String query = "UPDATE products SET stock = ? WHERE id = ?";
+        String query = "UPDATE product SET stock = ? WHERE id = ?";
         
         try (PreparedStatement ps = connect.getConnection().prepareStatement(query)) {
             ps.setInt(1, newStock);
@@ -105,7 +105,7 @@ public class ProductRepository {
         }
     }
 	public boolean checkStockAvailability(int productId, int requestedQuantity) {
-        String query = "SELECT stock FROM products WHERE id = ?";
+        String query = "SELECT stock FROM product WHERE id = ?";
         
         try (PreparedStatement ps = connect.getConnection().prepareStatement(query)) {
             ps.setInt(1, productId);

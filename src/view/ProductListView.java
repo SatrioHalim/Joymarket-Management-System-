@@ -1,5 +1,6 @@
 package view;
 
+import java.util.function.BiConsumer;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -24,15 +25,24 @@ public class ProductListView extends VBox {
     private Button searchBtn;
     private Button backBtn;
     private ObservableList<Product> products = FXCollections.observableArrayList();
+    private BiConsumer<Product, String> addToCartHandler;
     
     public ProductListView() {
-        System.out.println("ProductListView constructor called");
-        
+        initializeUI();
+    }
+    
+    private void initializeUI() {
         this.setSpacing(15);
         this.setPadding(new Insets(20));
         this.setStyle("-fx-background-color: #ffffff;");
         
-        // Header
+        setupHeader();
+        setupSearchBar();
+        setupProductTable();
+        setupStatusLabel();
+    }
+    
+    private void setupHeader() {
         HBox headerBox = new HBox();
         headerBox.setAlignment(Pos.CENTER_LEFT);
         headerBox.setSpacing(15);
@@ -45,8 +55,10 @@ public class ProductListView extends VBox {
         title.setStyle("-fx-text-fill: #333333;");
         
         headerBox.getChildren().addAll(backBtn, title);
-        
-        // Search bar
+        this.getChildren().add(headerBox);
+    }
+    
+    private void setupSearchBar() {
         HBox searchBox = new HBox(10);
         searchBox.setAlignment(Pos.CENTER_LEFT);
         
@@ -61,69 +73,45 @@ public class ProductListView extends VBox {
         searchBtn.setStyle("-fx-background-color: #f0f0f0; -fx-text-fill: #333333; -fx-border-color: #cccccc; -fx-border-width: 1px;");
         
         searchBox.getChildren().addAll(searchField, searchBtn);
-        
-        // Product Table
+        this.getChildren().add(searchBox);
+    }
+    
+    private void setupProductTable() {
         productTable = new TableView<>();
         productTable.setItems(products);
         productTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         productTable.setStyle("-fx-border-color: #cccccc; -fx-border-width: 1px;");
         
-        // Initialize columns
+        initializeTableColumns();
+        productTable.getColumns().addAll(nameCol, priceCol, stockCol, actionCol);
+        
+        this.getChildren().add(productTable);
+    }
+    
+    private void initializeTableColumns() {
         nameCol = new TableColumn<>("Product Name");
         priceCol = new TableColumn<>("Price ($)");
         stockCol = new TableColumn<>("Stock");
         actionCol = new TableColumn<>("Add to Cart");
         
-        // Setup columns
-        setupTableColumns();
-        
-        productTable.getColumns().addAll(nameCol, priceCol, stockCol, actionCol);
-        
-        // Status message
-        Label statusLabel = new Label("Enter quantity and click 'Add' to add items to cart");
-        statusLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 12px;");
-        
-        this.getChildren().addAll(headerBox, searchBox, productTable, statusLabel);
-        
-        System.out.println("ProductListView initialized successfully");
+        setupColumnProperties();
+        setupActionColumn();
     }
     
-    private void setupTableColumns() {
-        System.out.println("Setting up table columns...");
+    private void setupColumnProperties() {
+        nameCol.setCellValueFactory(cellData -> 
+            new SimpleStringProperty(cellData.getValue().getName()));
         
-        try {
-            // Gunakan SimpleProperty untuk menghindari error PropertyValueFactory
-            nameCol.setCellValueFactory(cellData -> {
-                Product product = cellData.getValue();
-                return new SimpleStringProperty(product.getName());
-            });
-            
-            priceCol.setCellValueFactory(cellData -> {
-                Product product = cellData.getValue();
-                return new SimpleDoubleProperty(product.getPrice()).asObject();
-            });
-            
-            stockCol.setCellValueFactory(cellData -> {
-                Product product = cellData.getValue();
-                return new SimpleIntegerProperty(product.getStock()).asObject();
-            });
-            
-            // Set widths
-            nameCol.setPrefWidth(250);
-            priceCol.setPrefWidth(100);
-            stockCol.setPrefWidth(100);
-            actionCol.setPrefWidth(150);
-            
-            // Setup action column
-            setupActionColumn();
-            
-            System.out.println("Table columns setup completed");
-            
-        } catch (Exception e) {
-            System.err.println("Error in setupTableColumns: " + e.getMessage());
-            e.printStackTrace();
-            throw e; // Re-throw untuk melihat stack trace lengkap
-        }
+        priceCol.setCellValueFactory(cellData -> 
+            new SimpleDoubleProperty(cellData.getValue().getPrice()).asObject());
+        
+        stockCol.setCellValueFactory(cellData -> 
+            new SimpleIntegerProperty(cellData.getValue().getStock()).asObject());
+        
+        nameCol.setPrefWidth(250);
+        priceCol.setPrefWidth(100);
+        stockCol.setPrefWidth(100);
+        actionCol.setPrefWidth(150);
     }
     
     private void setupActionColumn() {
@@ -139,40 +127,20 @@ public class ProductListView extends VBox {
                 quantityField.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-width: 1px;");
                 
                 addBtn.setStyle("-fx-background-color: #f0f0f0; -fx-text-fill: #333333; -fx-border-color: #cccccc; -fx-border-width: 1px;");
-                
                 container.setAlignment(Pos.CENTER);
                 
-                addBtn.setOnAction(e -> {
-                    try {
-                        Product product = getTableView().getItems().get(getIndex());
-                        String qtyText = quantityField.getText();
-                        
-                        // Basic validation
-                        if (qtyText.isEmpty()) {
-                            showAlert("Error", "Please enter quantity", Alert.AlertType.ERROR);
-                            return;
-                        }
-                        
-                        int quantity = Integer.parseInt(qtyText);
-                        if (quantity <= 0) {
-                            showAlert("Error", "Quantity must be positive", Alert.AlertType.ERROR);
-                            return;
-                        }
-                        
-                        // For now, just show confirmation
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        alert.setTitle("Added to Cart");
-                        alert.setHeaderText(null);
-                        alert.setContentText("Added " + quantity + " x " + product.getName() + " to cart\nTotal: $" + String.format("%.2f", product.getPrice() * quantity));
-                        alert.showAndWait();
-                        
-                    } catch (NumberFormatException ex) {
-                        showAlert("Error", "Please enter a valid number", Alert.AlertType.ERROR);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        showAlert("Error", "Failed to add to cart: " + ex.getMessage(), Alert.AlertType.ERROR);
-                    }
-                });
+                addBtn.setOnAction(e -> handleAddToCart());
+            }
+            
+            private void handleAddToCart() {
+                Product product = getTableView().getItems().get(getIndex());
+                String quantity = quantityField.getText().trim();
+                
+                if (addToCartHandler != null) {
+                    addToCartHandler.accept(product, quantity);
+                } else {
+                    showDefaultAlert("Error", "Cart handler not set", Alert.AlertType.ERROR);
+                }
             }
             
             @Override
@@ -180,34 +148,31 @@ public class ProductListView extends VBox {
                 super.updateItem(item, empty);
                 setGraphic(empty ? null : container);
             }
-            
-            private void showAlert(String title, String message, Alert.AlertType type) {
-                Alert alert = new Alert(type);
-                alert.setTitle(title);
-                alert.setHeaderText(null);
-                alert.setContentText(message);
-                alert.showAndWait();
-            }
         });
     }
     
-    // Methods to populate table
+    private void setupStatusLabel() {
+        Label statusLabel = new Label("Enter quantity and click 'Add' to add items to cart");
+        statusLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 12px;");
+        this.getChildren().add(statusLabel);
+    }
+    
+    private void showDefaultAlert(String title, String message, Alert.AlertType type) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+    
+    // Public API methods
     public void setProducts(ObservableList<Product> products) {
-        try {
-            System.out.println("Setting products to table, count: " + products.size());
-            this.products.setAll(products);
-            productTable.setItems(this.products);
-            productTable.refresh();
-            
-            // Debug: print product details
-            for (Product p : products) {
-                System.out.println("Product: " + p.getName() + ", Price: " + p.getPrice() + ", Stock: " + p.getStock());
-            }
-            
-        } catch (Exception e) {
-            System.err.println("Error in setProducts: " + e.getMessage());
-            e.printStackTrace();
-        }
+        this.products.setAll(products);
+        productTable.refresh();
+    }
+    
+    public void setAddToCartHandler(BiConsumer<Product, String> handler) {
+        this.addToCartHandler = handler;
     }
     
     public void clearProducts() {
